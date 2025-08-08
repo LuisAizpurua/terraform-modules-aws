@@ -1,23 +1,9 @@
-# provider "aws" {
-#   region = "us-east-1"
-#   profile = var.profile
-# }
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
 resource "random_id" "random" {
   byte_length = 8
 }
 
 resource "aws_s3_bucket" "s3_bucket" {
-  bucket = "my-bucket-tf-unique"
+  bucket = "my-bucket"
   force_destroy = true 
    tags = {
     Name="my-bucket"
@@ -26,11 +12,12 @@ resource "aws_s3_bucket" "s3_bucket" {
 }
 
 resource "aws_s3_object" "test_upload_bucket" {
-  for_each = fileset(var.path,"**")
+  for_each = fileset("${path.module}/images","**")
   bucket = aws_s3_bucket.s3_bucket.id
   key = each.key
-  source = "${var.path}/${each.value}"
-  etag = filemd5("${var.path}/${each.value}")
+  source = "${path.module}/${each.value}"
+
+  etag = filemd5("${path.module}/${each.value}")
   server_side_encryption = "AES256"
   tags = {
     Name ="My Bucket"
